@@ -1,0 +1,306 @@
+---
+title: "Business Analytics with R"
+output: html_notebook
+---
+
+This project will use an online department store dataset to show how the application of data science tool on business datasets guides strategy planning and decision making by the allocation of the resources by analyzing market trends and market force. 
+
+It has six steps:
+1. Data research
+2. Data Collection
+3. Data Cleaning and processing
+4. Data Processing
+5. Data Visualization
+6. Data Sharing 
+
+Steps 1, 2, 3, or exploratory data analysis, have already been performed.
+
+What are the advantages of business analytics?
+
+1. it helps to analyze and understand consumer behavior
+2. improves the consumer relationship by analyzing key market inference indicators: demographics, lifestyle, etc.
+3. it helps deciding who will be our target customer and what products should be produced
+4. it also assist us to making the products and services more customer-centric
+5. risk-management
+6. supply-chain management
+7. optimization of product cost
+8. it provides competitive analysis
+
+
+```{r echo=TRUE}
+install.packages("dplyr")
+install.packages("ggplot2")
+```
+
+
+```{r echo=TRUE}
+require(dplyr)
+```
+
+<h2>Central Problems of Economics</h2>
+In a society, the Root Problems are:
+The Unlimited wants and needs of people(Generally, whenever one want gets satisfied, another crops up)
+
+The Scarce/Limited Resources to satisfy the Unlimited wants/desires/needs of people.
+
+This situation leads to the state of making choice(Decision Making). We need to make decisions, for the better allocation of scarce resources we have, to get the maximum possible outcome. 
+
+The primary decisions we need to make for any business , are for the Central Problems of Economics.
+
+The 3 Basic Problems/Central Problems of Economics are :
+<ol>
+
+<li>
+What to Produce?
+Here we have to choose, what goods and services we will be producing.
+
+What type of goods?
+<ul>
+<li>
+Consumer goods or Capital goods?
+</li>
+<li>
+Essential goods or Luxury goods?
+</li>
+</ul>
+</li>
+ii. What quantity of goods to be produced? which particular goods needs to be produced in relatively greater quantity and which in relatively lesser quantity?  i.e. 
+On which products, greater proportion of cost of production is to be involved?
+
+<li>How to Produce?
+This problem is the choice of Techniques of Production. We have to choose either :
+
+i. The cheaper Labour Intensive Technique(more labour force and less capital involved) 
+
+ii. The expensive Capital Intensive Technique(more capital required, like- usage of technology, etc  and less labour force involved).
+</li>
+<li>
+For whom to Produce?
+Here we need to choose who will be our Target Customer. Which category of society will be our Customer? 
+
+i. Selection of customer based on Purchasing Power : Production for whether the people with greater Purchasing Power or lesser Purchasing Power? Relatively, Financially stronger category or financially weaker category?
+
+ii. Selection of customer based on a particular field : Goods and services to be produced customer of a particular age group, or particular gender or other particular fields.
+</li>
+</ol>
+
+<h2>Loading the dataset</h2>
+```{r}
+store <- read.csv("MY DEPARTMENTAL STORE.csv")
+```
+
+```{r}
+View(store)
+```
+
+
+<b>filter()</b>
+
+As a demonstration of the filter function, we select below stores according to a product type and a product category.
+
+```{r}
+store_foodgrainspices <- filter(store, PRODUCT_TYPE=="foodgrains&spices")
+View(store_foodgrainspices)
+```
+
+```{r}
+store_dryfruits <- filter(store, PRODUCT_CATEGORY=="Dry Fruits")
+View(store_dryfruits)
+```
+
+<b>select()</b>
+Below we demonstrate some uses of the select function
+
+```{r}
+#get information of columns SELLING_PRICE and COMPANY
+store1 <- select(store, SELLING_PRICE, COMPANY)
+View(store1)
+```
+
+```{r}
+#get information of columns 2 and 5
+store1 <- select(store, c(2,5))
+View(store1)
+```
+
+```{r}
+#get information from columns 2 to 5
+store1 <- select(store, c(2:5))
+View(store1)
+```
+
+```{r}
+#get information from columns that start with PRODUCT
+store1 <- select(store, starts_with("PRODUCT"))
+View(store1)
+```
+
+```{r}
+#get information from columns that end with NAME
+store1 <- select(store, ends_with("NAME"))
+View(store1)
+```
+
+<b>mutate()</b>
+adds new variables and preserves existing ones; 
+In this section we add 3 new columns representing the profit, profit percentage and net profit of each product.
+
+```{r}
+store1 <- mutate(store, PROFIT = SELLING_PRICE-COST_PRICE)
+store2 <- mutate(store1, PROFIT_PERCENT = PROFIT/COST_PRICE*100)
+store3 <- mutate(store2, NET_PROFIT=PROFIT*QUANTITY_DEMANDED)
+View(store3)
+```
+
+```{r}
+write.table(store3, file= "FINAL DEPARTMENTAL STORE.csv", sep=',')
+```
+
+<h2>Data Processing: arrange() & summarize()</h2>
+
+<b>arrange()</b>
+
+```{r}
+#this sorts products from the least demanded to the most demanded
+store_demand_asc <- arrange(store, QUANTITY_DEMANDED)
+View(store_demand_asc)
+```
+
+```{r}
+#sorts the most expensive products in descending order
+store_highest_price <- arrange(store, desc(SELLING_PRICE))
+View(store_highest_price)
+```
+
+<b>summarize()</b>
+It summarizes multiple values to a single value. Generally it is used along the group_by function in graphs and data visualization.
+
+```{r} 
+summarise(store1, AVERAGE=mean(PROFIT, na.rm=TRUE))
+
+summarize(store3, SUM=sum(NET_PROFIT, na.rm=TRUE))
+
+```
+
+
+```{r}
+#na.rm indicates if missing values should be removed
+
+summarise(store1, MINIMUM=min(PROFIT, na.rm=TRUE))
+summarise(store1, MEDIAN=median(PROFIT, na.rm=TRUE))
+summarise(store1, VARIANCE=var(PROFIT, na.rm=TRUE))
+summarise(store1, STANDARD_DEVIATION=sd(PROFIT, na.rm=TRUE))
+summarise(store1, MAXIMUM=max(PROFIT, na.rm = TRUE))
+```
+Data Visualization with ggplot2
+
+```{r}
+require(dplyr)
+require(ggplot2)
+```
+```{r}
+
+store <- read.csv("FINAL DEPARTMENTAL STORE.csv")
+View(store)
+```
+
+Plot for NET_PROFIT and COMPANY where COST_PRICE > 10
+```{r}
+store %>% filter(COST_PRICE>10) %>%
+  ggplot(aes(x=COMPANY, y=NET_PROFIT, color = PRODUCT_CATEGORY))+geom_point()
+View(store)
+```
+
+Plot for PROFIT and QUANTITY_DEMANDED where PRODUCT_TYPE == "hygiene"
+```{r}
+store %>% filter(PRODUCT_TYPE=="hygiene") %>%
+  ggplot(aes(x=QUANTITY_DEMANDED, y=PROFIT, color = PRODUCT_CATEGORY))+geom_point()
+```
+
+Plot for PROFIT and QUANTITY_DEMANDED where PRODUCT_TYPE == "beauty products"
+```{r}
+store %>% filter(PRODUCT_TYPE=="beauty products") %>%
+  ggplot(aes(x=QUANTITY_DEMANDED, y=PROFIT, color = PRODUCT_CATEGORY))+geom_point()
+```
+
+Plot for AVERAGE_QUANTITY and PRODUCT_TYPE
+```{r}
+store %>% group_by(PRODUCT_TYPE) %>%
+  summarise(AVERAGE_QUANTITY=mean(QUANTITY_DEMANDED)) %>%
+  ggplot(aes(x=PRODUCT_TYPE, y=AVERAGE_QUANTITY)) + geom_col(width = 0.5, fill='light blue') + theme(text=element_text(size=9))
+```
+We can observe that hygiene products have the highest profit margin, this is explained again by the covid-19, during which sanitizers and higienic product have become priorities.
+
+```{r}
+store %>% group_by(PRODUCT_TYPE) %>%
+  summarise(AVERAGE_QUANTITY=mean(QUANTITY_DEMANDED)) %>%
+  ggplot(aes(x=PRODUCT_TYPE, y=AVERAGE_QUANTITY)) + geom_col(width = 0.5, fill='light blue') + theme(text=element_text(size=9))
+```
+
+Plot by AVERAGE_NET_PROFIT and PRODUCT_TYPE
+```{r}
+store %>% group_by(PRODUCT_TYPE) %>%
+  summarise(AVERAGE_NET_PROFIT=mean(NET_PROFIT)) %>%
+  ggplot(aes(x=PRODUCT_TYPE, y=AVERAGE_NET_PROFIT)) + geom_col(width = 0.5, fill='light blue') + theme(text=element_text(size=9))
+```
+
+Plot by AVERAGE_NET_PROFIT and COMPANY
+```{r}
+store %>% group_by(COMPANY) %>%
+  summarise(AVERAGE_NET_PROFIT=mean(NET_PROFIT)) %>%
+  ggplot(aes(x=COMPANY, y=AVERAGE_NET_PROFIT)) + geom_col(width = 0.5, fill='light blue') + theme(text=element_text(size=9))
+```
+
+Line Plots
+(AVERAGE_SELLING_PRICE VS QUANTITY_DEMANDED)
+```{r}
+store %>% group_by(QUANTITY_DEMANDED) %>%
+  summarise(AVERAGE_SELLING_PRICE=mean(SELLING_PRICE, na.rm=TRUE)) %>%
+  ggplot(aes(x=QUANTITY_DEMANDED, y=AVERAGE_SELLING_PRICE, group=1)) + geom_line(color="light green")
+```
+
+AVERAGE_QUANTITY vs PRODUCT_CATEGORY
+```{r}
+store %>% group_by(PRODUCT_CATEGORY) %>%
+  summarise(AVERAGE_QUANTITY=mean(QUANTITY_DEMANDED, na.rm=TRUE)) %>%
+  ggplot(aes(x=PRODUCT_CATEGORY, y=AVERAGE_QUANTITY, group=1)) + geom_line(color="light green")
+```
+
+Plot for AVERAGE_PROFIT vs PRODUCT_CATEGORY
+```{r}
+store %>% group_by(PRODUCT_CATEGORY) %>%
+  summarise(AVERAGE_PROFIT=mean(PROFIT, na.rm=TRUE)) %>%
+  ggplot(aes(x=PRODUCT_CATEGORY, y=AVERAGE_PROFIT, group=1)) + geom_line(color="light green")
+```
+Plot for AVERAGE_NET_PROFIT vs COMPANY
+This time we'll plot a different line for each company
+```{r}
+store %>% group_by(PRODUCT_TYPE, COMPANY) %>%
+  summarise(AVERAGE_NET_PROFIT=mean(NET_PROFIT, na.rm=TRUE)) %>%
+  ggplot(aes(x=PRODUCT_TYPE, y=AVERAGE_NET_PROFIT, group=COMPANY, color=COMPANY)) + geom_line()
+```
+
+
+```{r}
+store %>% 
+  group_by(PRODUCT_TYPE) %>%
+  filter(NET_PROFIT>1000) %>%
+  summarise(AVERAGE1=mean(NET_PROFIT, na.rm=TRUE)) %>%
+  ggplot(aes(x=PRODUCT_TYPE, y=AVERAGE1, group=1)) + geom_line(color='light green')
+```
+```{r}
+store %>%
+  ggplot(aes(x=PROFIT_PERCENT, fill=PRODUCT_CATEGORY)) + geom_histogram(binwidth = 30)
+```
+
+
+```{r}
+store %>% filter(PRODUCT_TYPE == 'snacks') %>%
+  ggplot(aes(x=QUANTITY_DEMANDED, fill=PRODUCT_CATEGORY)) + geom_histogram(binwidth = 30)
+```
+Business analytics is an important asset to understand and analyze the market, the customer choices, demographics and other key factors influence the market. From this knowledge we can define our target customers and business strategy. 
+
+
+
+
+
